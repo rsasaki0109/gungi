@@ -1,0 +1,14 @@
+{
+  "name": "gungi",
+  "version": "1.0.0",
+  "description": "軍儀 (Gungi) — browser game with a strong CPU. Pure static app; no build needed.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8123",
+    "test:e2e": "node tests/e2e.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  }
+}

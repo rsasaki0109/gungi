@@ -61,7 +61,10 @@ export class Renderer {
 
       if (ui.selected === key) cell.classList.add('selected');
       if (targets.has(key)) {
-        cell.classList.add(gm.board.top(r, c) ? 'target-capture' : 'target-move');
+        const t = gm.board.top(r, c);
+        if (!t) cell.classList.add('target-move');
+        else if (t.color === gm.turn) cell.classList.add('target-tsuke'); // stack on own tower
+        else cell.classList.add('target-capture');                        // take enemy
       }
       if (ui.lastMove && sameSq(ui.lastMove.to, [r, c])) cell.classList.add('last-move');
       if (ui.lastMove && ui.lastMove.from && sameSq(ui.lastMove.from, [r, c])) cell.classList.add('last-from');

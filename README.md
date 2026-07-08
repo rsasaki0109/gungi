@@ -80,6 +80,20 @@ python3 -m http.server 8000
 
 ビルドは不要です。
 
+## テスト（Playwright E2E）
+
+ブラウザ実機（Chromium）で盤面描画・配置・着手・CPU応手・待った・レスポンシブ・
+コンソールエラーの有無までを検証します。
+
+```bash
+npm install                 # playwright を取得
+npx playwright install chromium
+npm start &                 # http://127.0.0.1:8123 で配信
+npm run test:e2e            # 23項目のE2Eテスト（スクリーンショットは tests/.shots/）
+# 公開中サイトに対して実行する場合:
+GUNGI_URL="https://<user>.github.io/gungi/" npm run test:e2e
+```
+
 ## GitHub Pages で公開
 
 1. このリポジトリを GitHub に push。
