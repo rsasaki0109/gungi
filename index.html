@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1b1512" />
+  <title>軍儀 — Gungi</title>
+  <meta name="description" content="ブラウザで遊べる軍儀（Gungi）。3段積み・持ち駒・CPU対戦（弱/中/強）対応。" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23b8863b'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23241a12' font-family='serif'%3E帥%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-kanji">軍儀</span>
+        <span class="brand-sub">Gungi</span>
+      </div>
+      <div class="controls">
+        <label class="ctl">
+          CPU
+          <select id="level-select" title="CPUの強さ">
+            <option value="easy">弱 (Easy)</option>
+            <option value="normal">中 (Normal)</option>
+            <option value="hard" selected>強 (Hard)</option>
+          </select>
+        </label>
+        <button id="btn-new" class="btn">新規</button>
+        <button id="btn-restart" class="btn" disabled>同じ布陣で再戦</button>
+        <button id="btn-undo" class="btn" disabled>待った</button>
+        <button id="btn-save" class="btn">棋譜保存</button>
+        <label class="btn file-btn">棋譜読込<input id="load-input" type="file" accept="application/json,.json" hidden /></label>
+      </div>
+    </header>
+
+    <div id="status" class="status">読み込み中…</div>
+
+    <main class="layout">
+      <section class="board-area">
+        <div id="board-root" class="board-root"></div>
+        <div id="thinking" class="thinking hidden">CPU 思考中…</div>
+      </section>
+
+      <aside class="sidebar">
+        <div id="setup-panel" class="panel setup-panel hidden">
+          <h3>布陣</h3>
+          <p class="hint">下の「持ち駒」から駒を選び、自陣（下3段）をクリックして配置。置いた駒をクリックで戻せます。</p>
+          <div class="setup-buttons">
+            <button id="btn-auto" class="btn small">おまかせ配置</button>
+            <button id="btn-clear" class="btn small">クリア</button>
+            <button id="btn-start" class="btn primary">対局開始 ▶</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>取った駒</h3>
+          <div class="captured-row"><span class="cap-label">白</span><div id="captured-white" class="captured"></div></div>
+          <div class="captured-row"><span class="cap-label">黒</span><div id="captured-black" class="captured"></div></div>
+        </div>
+
+        <div class="panel log-panel">
+          <h3>対局ログ</h3>
+          <div id="log" class="log"></div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <details>
+        <summary>遊び方・ルール概要</summary>
+        <div class="rules">
+          <p><b>目的：</b>相手の<b>帥（すい／大将）</b>を取れば勝ち。</p>
+          <p><b>盤：</b>9×9。駒は最大3段まで積める（ツケ）。上の段ほど遠くまで動ける。</p>
+          <p><b>配置：</b>最初に自陣3段へ布陣。持ち駒は「新（アラタ）」として盤に打てる（最前線より前には打てない）。</p>
+          <p><b>戦闘：</b>相手の駒の上に乗ると取れる（取った駒は持ち駒になる）。同じ高さ以上でないと積めない・取れない。</p>
+          <p><b>謀（策士）：</b>相手を含む塔に乗ると、その相手駒を寝返らせる（返）。</p>
+          <p class="dim">駒の動きは gungi.io 準拠のルールセット（14種）に基づきます。</p>
+        </div>
+      </details>
+    </footer>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
