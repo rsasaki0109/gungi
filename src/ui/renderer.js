@@ -5,6 +5,14 @@
 
 import { WHITE, BLACK, NAME_JA, NAME_EN, PIECE_TYPES } from '../game/constants.js';
 import { PHASE } from '../game/gameManager.js';
+import { t, getLang } from './i18n.js';
+
+// Localised hover text for a piece type (both names in JA, English name in EN).
+function pieceTitle(type, tiers) {
+  return getLang() === 'en'
+    ? `${NAME_EN[type]} (tier ${tiers})`
+    : `${NAME_JA[type]} / ${NAME_EN[type]}  (${tiers}段)`;
+}
 
 const SYMBOL = Object.fromEntries(PIECE_TYPES.map((t) => [t, t]));
 
@@ -85,7 +93,7 @@ export class Renderer {
     const glyph = el('span', 'glyph');
     glyph.textContent = SYMBOL[top.type];
     p.appendChild(glyph); // enemy (black) glyphs are rotated 180° via CSS, shogi-style
-    p.title = `${NAME_JA[top.type]} / ${NAME_EN[top.type]}  (${tower.length}段)`;
+    p.title = pieceTitle(top.type, tower.length);
     if (tower.length > 1) {
       const badge = el('div', 'tier-badge');
       badge.textContent = tower.length;
@@ -105,7 +113,7 @@ export class Renderer {
     const container = color === WHITE ? this.whiteHand : this.blackHand;
     container.innerHTML = '';
     const label = el('div', 'hand-label');
-    label.textContent = color === WHITE ? '白 持ち駒' : '黒 持ち駒';
+    label.textContent = t(color === WHITE ? 'hand_white' : 'hand_black');
     container.appendChild(label);
     const tray = el('div', 'hand-tray');
     for (const type of PIECE_TYPES) {
@@ -114,7 +122,7 @@ export class Renderer {
       const item = el('button', `hand-piece ${color === WHITE ? 'white' : 'black'}`);
       item.dataset.type = type; item.dataset.color = color;
       item.innerHTML = `<span class="hp-sym">${SYMBOL[type]}</span><span class="hp-count">${n}</span>`;
-      item.title = `${NAME_JA[type]}`;
+      item.title = getLang() === 'en' ? NAME_EN[type] : NAME_JA[type];
       const interactive = (gm.phase === PHASE.SETUP && color === gm.humanColor) ||
         (gm.phase === PHASE.PLAY && color === gm.turn && color === gm.humanColor);
       if (!interactive) item.classList.add('disabled');
@@ -122,7 +130,7 @@ export class Renderer {
       tray.appendChild(item);
     }
     if (!tray.children.length) {
-      const empty = el('span', 'hand-empty'); empty.textContent = 'なし'; tray.appendChild(empty);
+      const empty = el('span', 'hand-empty'); empty.textContent = t('hand_none'); tray.appendChild(empty);
     }
     container.appendChild(tray);
   }

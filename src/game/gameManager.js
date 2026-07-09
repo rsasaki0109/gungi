@@ -8,7 +8,7 @@ import * as RE from './ruleEngine.js';
 import {
   WHITE, BLACK, MARSHAL, GENERAL, LIEUTENANT, MAJOR, WARRIOR, LANCER,
   RIDER, SPY, FORTRESS, SOLDIER, CANNON, ARCHER, MUSKETEER, TACTICIAN,
-  NAME_JA, START_COUNTS, opponent, homeRanks,
+  NAME_JA, NAME_EN, START_COUNTS, opponent, homeRanks,
 } from './constants.js';
 
 export const PHASE = { SETUP: 'setup', PLAY: 'play', OVER: 'over' };
@@ -47,8 +47,8 @@ export class GameManager {
     this.turn = WHITE;
     this.winner = null;
     this.winReason = null;
-    this.history = [];   // { move, undo, san, color, capturedNames }
-    this.log = [];       // human-readable strings
+    this.history = [];   // { move, undo, color }
+    this.log = [];       // structured entries -> localised by the UI (see i18n.js)
     this.listeners = new Set();
     this._emit();
   }
@@ -119,7 +119,7 @@ export class GameManager {
     if (!this.board.findMarshal(cpu)) this.autoDeploy(cpu);
     this.phase = PHASE.PLAY;
     this.turn = WHITE;
-    this.log.push('▶ 対局開始');
+    this.log.push({ k: 'start' });
     this._checkGameOver();
     this._emit();
     return true;
@@ -148,40 +148,31 @@ export class GameManager {
   play(move) {
     if (this.phase !== PHASE.PLAY) return false;
     const undo = RE.applyMove(this.board, move);
-    const san = moveToSan(move);
-    const capturedNames = (move.captured || []).map((p) => NAME_JA[p.type]);
-    this.history.push({ move, undo, san, color: move.color, capturedNames });
-    this._pushLog(move, san, capturedNames);
+    this.history.push({ move, undo, color: move.color });
+    const caps = (move.captured || []).map((p) => p.type);
+    this.log.push({ k: 'move', n: this.history.length, color: move.color, move, caps });
     this.turn = opponent(this.turn);
     this._checkGameOver();
     this._emit();
     return true;
   }
 
-  _pushLog(move, san, capturedNames) {
-    const n = this.history.length;
-    const side = move.color === WHITE ? '☗白' : '☖黒';
-    let s = `${n}. ${side} ${san}`;
-    if (capturedNames.length) s += `  ×${capturedNames.join('・')}`;
-    this.log.push(s);
-  }
-
   _checkGameOver() {
     const w = RE.winnerByCapture(this.board);
-    if (w) { this._end(w, '帥を取った'); return; }
+    if (w) { this._end(w, 'capture'); return; }
     // side to move mated / no legal moves
     if (RE.hasNoLegalMoves(this.board, this.turn)) {
       const checked = RE.inCheck(this.board, this.turn);
-      this._end(opponent(this.turn), checked ? '詰み' : '手詰まり');
+      this._end(opponent(this.turn), checked ? 'mate' : 'stalemate');
     }
   }
 
+  // `reason` is a key ('capture' | 'mate' | 'stalemate') localised by the UI.
   _end(winner, reason) {
     this.phase = PHASE.OVER;
     this.winner = winner;
     this.winReason = reason;
-    const side = winner === WHITE ? '白' : '黒';
-    this.log.push(`★ ${side}の勝ち（${reason}）`);
+    this.log.push({ k: 'win', winner, reason });
   }
 
   inCheck(color = this.turn) {
@@ -196,7 +187,7 @@ export class GameManager {
     const h = this.history.pop();
     RE.undoMove(this.board, h.undo);
     this.turn = h.color;
-    this.log.push(`↩ 待った: ${h.san}`);
+    this.log.push({ k: 'undo', move: h.move });
     this._emit();
     return true;
   }
@@ -241,17 +232,14 @@ export class GameManager {
     if (!data || data.format !== 'gungi-kifu') throw new Error('未対応の棋譜形式です');
     this.humanColor = data.humanColor || WHITE;
     this.loadFromSetup(data.setup);
-    this.log = ['▶ 棋譜を読み込みました'];
+    this.log = [{ k: 'loaded' }];
     // replay the moves
     for (const cm of data.moves) {
       const move = expandMove(cm);
       // resolve captured pieces against the live board so undo works
       resolveCaptured(this.board, move);
       const undo = RE.applyMove(this.board, move);
-      this.history.push({
-        move, undo, san: moveToSan(move), color: move.color,
-        capturedNames: (move.captured || []).map((p) => NAME_JA[p.type]),
-      });
+      this.history.push({ move, undo, color: move.color });
       this.turn = opponent(move.color);
     }
     this._checkGameOver();
@@ -261,14 +249,15 @@ export class GameManager {
 
 // ----- move notation & (de)serialization --------------------------------
 
-export function moveToSan(move) {
-  const t = NAME_JA[move.pieceType].replace(/（.*）/, '');
-  const to = `${move.to[0]}${String.fromCharCode(9311 + move.to[1])}`; // e.g. 5②
+export function moveToSan(move, lang = 'ja') {
+  const en = lang === 'en';
+  const t = en ? NAME_EN[move.pieceType] : NAME_JA[move.pieceType].replace(/（.*）/, '');
   const dst = `${move.to[0]}-${move.to[1]}`;
-  if (move.kind === 'arata') return `新${t}(${dst})`;
+  if (move.kind === 'arata') return en ? `*${t}(${dst})` : `新${t}(${dst})`;
   const from = `${move.from[0]}-${move.from[1]}`;
-  const mark = move.type === 'capture' ? '取' : move.type === 'tsuke' ? '付'
-    : move.type === 'betray' ? '返' : '';
+  const mark = move.type === 'capture' ? (en ? 'x' : '取')
+    : move.type === 'tsuke' ? (en ? '+' : '付')
+      : move.type === 'betray' ? (en ? '~' : '返') : '';
   return `${t}(${from}→${dst})${mark}`;
 }
 

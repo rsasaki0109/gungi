@@ -49,6 +49,7 @@ select { padding: 6px 8px; }
 .btn.primary { background: var(--wood-dark); color: #201108; border-color: var(--wood); font-weight: 700; }
 .btn.primary:hover { background: var(--wood); }
 .btn.small { padding: 6px 9px; font-size: 12px; }
+.btn.lang-btn { min-width: 52px; font-weight: 600; letter-spacing: .02em; }
 .file-btn { display: inline-flex; align-items: center; }
 
 /* ---- status ---- */

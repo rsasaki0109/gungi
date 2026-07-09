@@ -3,11 +3,12 @@
 // Holds transient UI state (selection / highlights); all rules go through the
 // GameManager + RuleEngine.
 
-import { PHASE } from '../game/gameManager.js';
+import { PHASE, moveToSan } from '../game/gameManager.js';
 import {
-  WHITE, BLACK, AI_LEVELS, NAME_JA, START_COUNTS, opponent,
+  WHITE, BLACK, AI_LEVELS, NAME_JA, NAME_EN, START_COUNTS, opponent,
 } from '../game/constants.js';
 import { animateMove, showVictory, hideVictory } from './animations.js';
+import { t, getLang, toggleLang, onLangChange, applyStaticI18n } from './i18n.js';
 
 export class Controller {
   constructor({ gm, renderer, root, els, ai }) {
@@ -22,7 +23,22 @@ export class Controller {
     this.reset_ui();
     this._wire();
     this.gm.onChange(() => this.refresh());
+    onLangChange(() => this._applyLang());
+    this._applyLang();
+  }
+
+  // Re-translate static markup + the language toggle, then repaint everything.
+  _applyLang() {
+    applyStaticI18n(document);
+    this._syncLangButton();
     this.refresh();
+  }
+
+  _syncLangButton() {
+    const btn = this.els.btnLang;
+    if (!btn) return;
+    btn.textContent = t('lang_button');
+    btn.title = t('lang_button_title');
   }
 
   reset_ui() {
@@ -61,6 +77,7 @@ export class Controller {
     E.btnClear?.addEventListener('click', () => this.clearDeployment());
     E.btnStart?.addEventListener('click', () => this.startGame());
     E.levelSelect?.addEventListener('change', (e) => { this.level = e.target.value; this._status(); });
+    E.btnLang?.addEventListener('click', () => toggleLang());
   }
 
   // ---- input handlers --------------------------------------------------
@@ -190,9 +207,10 @@ export class Controller {
 
   _afterMove() {
     if (this.gm.phase === PHASE.OVER) {
-      const winner = this.gm.winner === this.gm.humanColor ? 'あなたの勝ち！' :
-        (this.vsCPU ? 'CPUの勝ち' : `${this.gm.winner === WHITE ? '白' : '黒'}の勝ち`);
-      showVictory(this.root, winner, this.gm.winReason || '');
+      const winner = this.gm.winner === this.gm.humanColor ? t('win_you') :
+        (this.vsCPU ? t('win_cpu') : t('win_side', { side: t(this.gm.winner === WHITE ? 'side_white' : 'side_black') }));
+      const sub = this.gm.winReason ? t('reason_' + this.gm.winReason) : '';
+      showVictory(this.root, winner, sub);
     }
   }
 
@@ -210,7 +228,7 @@ export class Controller {
     hideVictory(this.root);
     const setup = this.gm._serializeSetup();
     this.gm.loadFromSetup(setup);
-    this.gm.log = ['▶ 同じ布陣で対局開始'];
+    this.gm.log = [{ k: 'restart' }];
     this.reset_ui();
     this.gm._emit();
   }
@@ -238,7 +256,7 @@ export class Controller {
   }
 
   startGame() {
-    if (!this.gm.canStart()) { this._flashStatus('帥（大将）を配置してください'); return; }
+    if (!this.gm.canStart()) { this._flashStatus(t('need_marshal')); return; }
     this.gm.startGame();
     this.reset_ui();
     this.refresh();
@@ -271,7 +289,7 @@ export class Controller {
         this._afterMove();
         this.maybeAITurn();
       } catch (err) {
-        this._flashStatus('棋譜の読み込みに失敗しました');
+        this._flashStatus(t('load_failed'));
         console.error(err);
       }
     };
@@ -315,18 +333,21 @@ export class Controller {
     if (!E.status) return;
     if (gm.phase === PHASE.SETUP) {
       const placed = 25 - gm.board.handTotal(gm.humanColor);
-      E.status.textContent = `配置フェーズ — 自陣（下3段）に布陣 (${placed}/25)　帥を置いたら「対局開始」`;
+      E.status.textContent = t('status_setup', { placed });
       return;
     }
     if (gm.phase === PHASE.OVER) {
-      E.status.textContent = `対局終了 — ${gm.winner === WHITE ? '白' : '黒'}の勝ち（${gm.winReason}）`;
+      const side = t(gm.winner === WHITE ? 'side_white' : 'side_black');
+      E.status.textContent = t('status_over', { side, reason: t('reason_' + gm.winReason) });
       return;
     }
-    const side = gm.turn === WHITE ? '白' : '黒';
-    const who = gm.turn === gm.humanColor ? 'あなた' : 'CPU';
-    let s = `手番: ${side}（${who}）`;
-    if (gm.inCheck(gm.turn)) s += '　王手！';
-    if (this._lastAIMeta && this._lastAIMeta.depth) s += `　　CPU: Lv.${labelLevel(this.level)} 深さ${this._lastAIMeta.depth}`;
+    const side = t(gm.turn === WHITE ? 'side_white' : 'side_black');
+    const who = t(gm.turn === gm.humanColor ? 'who_you' : 'who_cpu');
+    let s = t('status_turn', { side, who });
+    if (gm.inCheck(gm.turn)) s += t('check_suffix');
+    if (this._lastAIMeta && this._lastAIMeta.depth) {
+      s += t('cpu_meta', { lvl: labelLevel(this.level), depth: this._lastAIMeta.depth });
+    }
     E.status.textContent = s;
   }
 
@@ -340,12 +361,14 @@ export class Controller {
 
   _showThinking(on) {
     if (this.els.thinking) this.els.thinking.classList.toggle('hidden', !on);
-    if (on && this.els.thinking) this.els.thinking.textContent = `CPU 思考中…（Lv.${labelLevel(this.level)}）`;
+    if (on && this.els.thinking) this.els.thinking.textContent = t('thinking', { lvl: labelLevel(this.level) });
   }
 
   _renderLog() {
     if (!this.els.log) return;
-    this.els.log.innerHTML = this.gm.log.slice(-60).map((l) => `<div class="log-line">${escapeHtml(l)}</div>`).join('');
+    const lang = getLang();
+    this.els.log.innerHTML = this.gm.log.slice(-60)
+      .map((e) => `<div class="log-line">${escapeHtml(formatLog(e, lang))}</div>`).join('');
     this.els.log.scrollTop = this.els.log.scrollHeight;
   }
 
@@ -363,10 +386,43 @@ export class Controller {
 function renderCaps(map) {
   const entries = Object.entries(map);
   if (!entries.length) return '<span class="cap-empty">—</span>';
-  return entries.map(([t, n]) => `<span class="cap" title="${NAME_JA[t]}">${t}${n > 1 ? '×' + n : ''}</span>`).join('');
+  const en = getLang() === 'en';
+  return entries.map(([type, n]) => {
+    const title = en ? NAME_EN[type] : NAME_JA[type];
+    return `<span class="cap" title="${title}">${type}${n > 1 ? '×' + n : ''}</span>`;
+  }).join('');
 }
+
+// Render one structured game-log entry (see gameManager) in the current language.
+function formatLog(e, lang) {
+  switch (e.k) {
+    case 'start': return t('log_start');
+    case 'restart': return t('log_restart');
+    case 'loaded': return t('log_loaded');
+    case 'undo': return t('log_undo', { san: moveToSan(e.move, lang) });
+    case 'win': {
+      const side = t(e.winner === WHITE ? 'side_white' : 'side_black');
+      return t('log_win', { side, reason: t('reason_' + e.reason) });
+    }
+    case 'move': {
+      const mark = e.color === WHITE ? '☗' : '☖';
+      const side = mark + t(e.color === WHITE ? 'side_white' : 'side_black');
+      let s = t('log_move', { n: e.n, side, san: moveToSan(e.move, lang) });
+      if (e.caps && e.caps.length) {
+        const sep = lang === 'en' ? ', ' : '・';
+        const names = e.caps.map((ty) => (lang === 'en' ? NAME_EN[ty] : NAME_JA[ty].replace(/（.*）/, ''))).join(sep);
+        s += '  ×' + names;
+      }
+      return s;
+    }
+    default: return '';
+  }
+}
+
 function labelLevel(l) {
-  return l === AI_LEVELS.EASY ? '弱' : l === AI_LEVELS.NORMAL ? '中'
-    : l === AI_LEVELS.NEURAL ? '学習AI' : '強';
+  const key = l === AI_LEVELS.EASY ? 'lvllabel_easy'
+    : l === AI_LEVELS.NORMAL ? 'lvllabel_normal'
+      : l === AI_LEVELS.NEURAL ? 'lvllabel_neural' : 'lvllabel_hard';
+  return t(key);
 }
 function escapeHtml(s) { return s.replace(/[&<>]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }

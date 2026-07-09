@@ -19,48 +19,49 @@
       <div class="controls">
         <label class="ctl">
           CPU
-          <select id="level-select" title="CPUの強さ">
-            <option value="easy">弱 (Easy)</option>
-            <option value="normal">中 (Normal)</option>
-            <option value="hard" selected>強 (Hard)</option>
-            <option value="neural">学習AI (実験)</option>
+          <select id="level-select" data-i18n-title="cpu_level_title" title="CPUの強さ">
+            <option value="easy" data-i18n="lvl_easy">弱 (Easy)</option>
+            <option value="normal" data-i18n="lvl_normal">中 (Normal)</option>
+            <option value="hard" selected data-i18n="lvl_hard">強 (Hard)</option>
+            <option value="neural" data-i18n="lvl_neural">学習AI (実験)</option>
           </select>
         </label>
-        <button id="btn-new" class="btn">新規</button>
-        <button id="btn-restart" class="btn" disabled>同じ布陣で再戦</button>
-        <button id="btn-undo" class="btn" disabled>待った</button>
-        <button id="btn-save" class="btn">棋譜保存</button>
-        <label class="btn file-btn">棋譜読込<input id="load-input" type="file" accept="application/json,.json" hidden /></label>
+        <button id="btn-new" class="btn" data-i18n="btn_new">新規</button>
+        <button id="btn-restart" class="btn" data-i18n="btn_restart" disabled>同じ布陣で再戦</button>
+        <button id="btn-undo" class="btn" data-i18n="btn_undo" disabled>待った</button>
+        <button id="btn-save" class="btn" data-i18n="btn_save">棋譜保存</button>
+        <label class="btn file-btn"><span data-i18n="btn_load">棋譜読込</span><input id="load-input" type="file" accept="application/json,.json" hidden /></label>
+        <button id="btn-lang" class="btn lang-btn" title="Switch to English">EN</button>
       </div>
     </header>
 
-    <div id="status" class="status">読み込み中…</div>
+    <div id="status" class="status" data-i18n="loading">読み込み中…</div>
 
     <main class="layout">
       <section class="board-area">
         <div id="board-root" class="board-root"></div>
-        <div id="thinking" class="thinking hidden">CPU 思考中…</div>
+        <div id="thinking" class="thinking hidden" data-i18n="thinking_plain">CPU 思考中…</div>
       </section>
 
       <aside class="sidebar">
         <div id="setup-panel" class="panel setup-panel hidden">
-          <h3>布陣</h3>
-          <p class="hint">下の「持ち駒」から駒を選び、自陣（下3段）をクリックして配置。置いた駒をクリックで戻せます。</p>
+          <h3 data-i18n="setup_title">布陣</h3>
+          <p class="hint" data-i18n="setup_hint">下の「持ち駒」から駒を選び、自陣（下3段）をクリックして配置。置いた駒をクリックで戻せます。</p>
           <div class="setup-buttons">
-            <button id="btn-auto" class="btn small">おまかせ配置</button>
-            <button id="btn-clear" class="btn small">クリア</button>
-            <button id="btn-start" class="btn primary">対局開始 ▶</button>
+            <button id="btn-auto" class="btn small" data-i18n="btn_auto">おまかせ配置</button>
+            <button id="btn-clear" class="btn small" data-i18n="btn_clear">クリア</button>
+            <button id="btn-start" class="btn primary" data-i18n="btn_start">対局開始 ▶</button>
           </div>
         </div>
 
         <div class="panel">
-          <h3>取った駒</h3>
-          <div class="captured-row"><span class="cap-label">白</span><div id="captured-white" class="captured"></div></div>
-          <div class="captured-row"><span class="cap-label">黒</span><div id="captured-black" class="captured"></div></div>
+          <h3 data-i18n="captured_title">取った駒</h3>
+          <div class="captured-row"><span class="cap-label" data-i18n="side_white">白</span><div id="captured-white" class="captured"></div></div>
+          <div class="captured-row"><span class="cap-label" data-i18n="side_black">黒</span><div id="captured-black" class="captured"></div></div>
         </div>
 
         <div class="panel log-panel">
-          <h3>対局ログ</h3>
+          <h3 data-i18n="log_title">対局ログ</h3>
           <div id="log" class="log"></div>
         </div>
       </aside>
@@ -68,8 +69,8 @@
 
     <footer class="footer">
       <details>
-        <summary>遊び方・ルール概要</summary>
-        <div class="rules">
+        <summary data-i18n="rules_summary">遊び方・ルール概要</summary>
+        <div class="rules" data-i18n-html="rules_html">
           <p><b>目的：</b>相手の<b>帥（すい／大将）</b>を取れば勝ち。</p>
           <p><b>盤：</b>9×9。駒は最大3段まで積める（ツケ）。上の段ほど遠くまで動ける。</p>
           <p><b>配置：</b>最初に自陣3段へ布陣。持ち駒は「新（アラタ）」として盤に打てる（最前線より前には打てない）。</p>

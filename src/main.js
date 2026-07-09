@@ -5,8 +5,12 @@ import { GameManager } from './game/gameManager.js';
 import { Renderer } from './ui/renderer.js';
 import { Controller } from './ui/controller.js';
 import { chooseMove } from './ai/ai.js';
+import { getLang } from './ui/i18n.js';
 
 function boot() {
+  // reflect the persisted language choice on <html lang> before first paint
+  try { document.documentElement.lang = getLang(); } catch { /* no document */ }
+
   const boardRoot = document.getElementById('board-root');
   const gm = new GameManager();
   const renderer = new Renderer(boardRoot);
@@ -27,6 +31,7 @@ function boot() {
     btnClear: document.getElementById('btn-clear'),
     btnStart: document.getElementById('btn-start'),
     levelSelect: document.getElementById('level-select'),
+    btnLang: document.getElementById('btn-lang'),
   };
 
   const controller = new Controller({ gm, renderer, root: boardRoot, els, ai: { chooseMove } });
