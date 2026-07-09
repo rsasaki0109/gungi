@@ -11,6 +11,20 @@
 > 駒の動きは、gungi.io / gungi.js 系の機械的に定義された 14 種ルールセットに準拠しています
 > （原作漫画では全駒の動きが明示されていないため、実装可能な公開ルールセットを採用）。
 
+**▶ 今すぐ遊ぶ： https://rsasaki0109.github.io/gungi/**
+
+## スクリーンショット
+
+<p align="center">
+  <img src="assets/screenshot-play.png" alt="対局画面 — 駒を選ぶと移動可能マスがハイライト" width="640"><br>
+  <sub>対局画面（駒を選ぶと移動可能マス／ツケ／取りをハイライト）</sub>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-mobile.png" alt="モバイル表示（1カラム・レスポンシブ）" width="260"><br>
+  <sub>スマホ表示（1カラム・レスポンシブ）</sub>
+</p>
+
 ## 遊び方
 
 1. **配置フェーズ**：画面下の「持ち駒」から駒を選び、自陣（下3段）をクリックして布陣します。
