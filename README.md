@@ -16,12 +16,12 @@
 ## スクリーンショット
 
 <p align="center">
-  <img src="assets/play.png" alt="対局画面 — 駒を選ぶと移動可能マスがハイライト" width="640"><br>
+  <img src="https://raw.githubusercontent.com/rsasaki0109/gungi/main/assets/play.png" alt="対局画面 — 駒を選ぶと移動可能マスがハイライト" width="640"><br>
   <sub>対局画面（駒を選ぶと移動可能マス／ツケ／取りをハイライト）</sub>
 </p>
 
 <p align="center">
-  <img src="assets/mobile.png" alt="モバイル表示（1カラム・レスポンシブ）" width="260"><br>
+  <img src="https://raw.githubusercontent.com/rsasaki0109/gungi/main/assets/mobile.png" alt="モバイル表示（1カラム・レスポンシブ）" width="260"><br>
   <sub>スマホ表示（1カラム・レスポンシブ）</sub>
 </p>
 
