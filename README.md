@@ -108,6 +108,28 @@ npm run test:e2e            # 23項目のE2Eテスト（スクリーンショッ
 GUNGI_URL="https://<user>.github.io/gungi/" npm run test:e2e
 ```
 
+## 学習AI（AlphaZero式・β）
+
+CPUレベルに **「学習AI (β)」** を追加しました。方策＋価値のニューラルネット（純JS・依存ゼロ）を
+**PUCT MCTS** で用いる、AlphaZero式のエージェントです。ブラウザは `assets/model.json`（int8量子化・
+約540KB）を読み込み、依存なしで推論します（**ビルド不要のまま**）。
+
+学習は Node でオフライン実行し、成果物（重み）だけを配置します。
+
+```bash
+# 1) ミニマックスを教師にウォームスタート（value=tanh(eval), policy=最善手）
+node train/warmstart.mjs [games] [epochs] [arenaGames]   # 例: node train/warmstart.mjs 70 12 6
+# 2) 自己対戦で改善（AlphaZeroループ：自己対戦→学習→棋力測定）
+node train/selfplay.mjs [iterations] [gamesPerIter] [sims]
+# → いずれも assets/model.json を更新
+```
+
+構成：`src/ai/nn.js`（MLP・2ヘッド・Adam・量子化保存）／`src/ai/encode.js`（手番視点の正準符号化・
+分解方策）／`src/ai/mcts.js`（PUCT・Dirichletノイズ・時間制御）／`train/`（学習スクリプト）。
+
+> β版です。CPUのみの学習のため棋力は発展途上で、計算資源（自己対戦の反復）を増やすほど強くなります。
+> ブラウザ側は時間制御MCTSなので端末性能に自動追従します（`model.json` 読込失敗時は Hard にフォールバック）。
+
 ## GitHub Pages で公開
 
 1. このリポジトリを GitHub に push。

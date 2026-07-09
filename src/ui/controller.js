@@ -365,5 +365,8 @@ function renderCaps(map) {
   if (!entries.length) return '<span class="cap-empty">—</span>';
   return entries.map(([t, n]) => `<span class="cap" title="${NAME_JA[t]}">${t}${n > 1 ? '×' + n : ''}</span>`).join('');
 }
-function labelLevel(l) { return l === AI_LEVELS.EASY ? '弱' : l === AI_LEVELS.NORMAL ? '中' : '強'; }
+function labelLevel(l) {
+  return l === AI_LEVELS.EASY ? '弱' : l === AI_LEVELS.NORMAL ? '中'
+    : l === AI_LEVELS.NEURAL ? '学習AI' : '強';
+}
 function escapeHtml(s) { return s.replace(/[&<>]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }

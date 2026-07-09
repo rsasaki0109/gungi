@@ -152,6 +152,7 @@ export class GungiNet {
   }
 
   static fromJSON(j) {
+    if (j.q) return GungiNet.fromQuant(j);
     const net = new GungiNet(j.inDim, j.H, j.H2, () => 0);
     const load = (dst, src) => { dst.W = Float32Array.from(src.W); dst.b = Float32Array.from(src.b); dst.inN = src.inN; dst.outN = src.outN;
       dst.mW = mat(dst.outN, dst.inN); dst.vW = mat(dst.outN, dst.inN); dst.mb = new Float32Array(dst.outN); dst.vb = new Float32Array(dst.outN); };
@@ -160,6 +161,47 @@ export class GungiNet {
     net._t = j.t || 0;
     return net;
   }
+
+  // Compact int8-quantized format for shipping to the browser (~18x smaller).
+  toQuant() {
+    const enc = (l) => ({ inN: l.inN, outN: l.outN, W: quantB64(l.W), b: quantB64(l.b) });
+    return { q: 1, inDim: this.inDim, H: this.H, H2: this.H2,
+      l1: enc(this.l1), l2: enc(this.l2), vHead: enc(this.vHead), fHead: enc(this.fHead), tHead: enc(this.tHead), dHead: enc(this.dHead) };
+  }
+
+  static fromQuant(j) {
+    const net = new GungiNet(j.inDim, j.H, j.H2, () => 0);
+    const load = (dst, src) => { dst.inN = src.inN; dst.outN = src.outN;
+      dst.W = dequantB64(src.W); dst.b = dequantB64(src.b);
+      dst.mW = mat(dst.outN, dst.inN); dst.vW = mat(dst.outN, dst.inN); dst.mb = new Float32Array(dst.outN); dst.vb = new Float32Array(dst.outN); };
+    load(net.l1, j.l1); load(net.l2, j.l2); load(net.vHead, j.vHead); load(net.fHead, j.fHead); load(net.tHead, j.tHead); load(net.dHead, j.dHead);
+    net.layers = [net.l1, net.l2, net.vHead, net.fHead, net.tHead, net.dHead];
+    return net;
+  }
+}
+
+// ---- int8 quantization + base64 (Node & browser) ----
+function bytesToB64(u8) {
+  if (typeof Buffer !== 'undefined') return Buffer.from(u8).toString('base64');
+  let s = ''; for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return btoa(s);
+}
+function b64ToBytes(str) {
+  if (typeof Buffer !== 'undefined') { const b = Buffer.from(str, 'base64'); return new Uint8Array(b.buffer, b.byteOffset, b.length); }
+  const bin = atob(str); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u;
+}
+function quantB64(f32) {
+  let m = 0; for (let i = 0; i < f32.length; i++) { const a = Math.abs(f32[i]); if (a > m) m = a; }
+  const scale = m / 127 || 1;
+  const q = new Int8Array(f32.length);
+  for (let i = 0; i < f32.length; i++) q[i] = Math.max(-127, Math.min(127, Math.round(f32[i] / scale)));
+  return { s: scale, d: bytesToB64(new Uint8Array(q.buffer)) };
+}
+function dequantB64(obj) {
+  const bytes = b64ToBytes(obj.d);
+  const q = new Int8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const f = new Float32Array(q.length);
+  for (let i = 0; i < q.length; i++) f[i] = q[i] * obj.s;
+  return f;
 }
 
 function adam(P, m, v, g, count, lr, wd, b1, b2, bc1, bc2) {

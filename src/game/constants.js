@@ -123,7 +123,7 @@ export const PIECE_VALUE = {
   [TACTICIAN]: 58,
 };
 
-export const AI_LEVELS = { EASY: 'easy', NORMAL: 'normal', HARD: 'hard' };
+export const AI_LEVELS = { EASY: 'easy', NORMAL: 'normal', HARD: 'hard', NEURAL: 'neural' };
 
 // Territory helpers: a player's own 3 ranks (where drops may start during the draft).
 export function homeRanks(color) {
