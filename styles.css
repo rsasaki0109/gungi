@@ -129,8 +129,12 @@ select { padding: 6px 8px; }
   font-size: clamp(15px, 4.4vw, 30px); font-weight: 700; line-height: 1;
   box-shadow: 0 2px 3px #0006; will-change: transform;
 }
+.piece .glyph { display: inline-block; line-height: 1; }
 .piece.white { background: linear-gradient(160deg, #fbf4e2, #e7d8ba); color: var(--white-ink); border: 1px solid #cbb387; }
 .piece.black { background: linear-gradient(160deg, #33261d, #191009); color: var(--black-ink); border: 1px solid #000; }
+/* enemy (black / top player) pieces face the other way, shogi-style */
+.piece.black .glyph { transform: rotate(180deg); }
+.hand-piece.black .hp-sym { display: inline-block; transform: rotate(180deg); }
 .piece.h2 { box-shadow: -2px 3px 0 #00000030, 0 3px 5px #0007; }
 .piece.h3 { box-shadow: -3px 3px 0 #00000030, -5px 6px 0 #00000022, 0 4px 6px #0008; }
 .piece.drop-in { animation: dropin .25s ease; }

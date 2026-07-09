@@ -82,7 +82,9 @@ export class Renderer {
     const wrap = el('div', 'tower');
     const top = tower[tower.length - 1];
     const p = el('div', `piece ${top.color === WHITE ? 'white' : 'black'} h${tower.length}`);
-    p.textContent = SYMBOL[top.type];
+    const glyph = el('span', 'glyph');
+    glyph.textContent = SYMBOL[top.type];
+    p.appendChild(glyph); // enemy (black) glyphs are rotated 180° via CSS, shogi-style
     p.title = `${NAME_JA[top.type]} / ${NAME_EN[top.type]}  (${tower.length}段)`;
     if (tower.length > 1) {
       const badge = el('div', 'tier-badge');
