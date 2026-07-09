@@ -33,10 +33,13 @@ export function collectSupervised({ games = 30, maxPlies = 60, epsilon = 0.25, d
       const legal = generateLegalMoves(gm.board, mover);
       if (!legal.length) break;
 
-      // teacher move + policy target (one-hot on best)
-      const best = searchBestMove(gm.board, mover, { maxDepth: depth, timeMs, useQ: true }).move || legal[0];
+      // teacher move + policy target (one-hot on best); value = search score
+      // (captures the teacher's lookahead, not just a static eval)
+      const res = searchBestMove(gm.board, mover, { maxDepth: depth, timeMs, useQ: true });
+      const best = res.move || legal[0];
+      const sc = Number.isFinite(res.score) ? res.score : evaluate(gm.board, mover);
       const x = encodeState(gm.board, mover);
-      const value = Math.tanh(evaluate(gm.board, mover) / VALUE_SCALE);
+      const value = Math.tanh(sc / VALUE_SCALE);
       const actions = legal.map((m) => {
         const idx = moveToIndices(m, mover);
         idx.pi = sameMove(m, best) ? 1 : 0;
